@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sizer/flutter_sizer.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:teeth_identification_final_year_project/screens/home_screen.dart';
 import 'package:teeth_identification_final_year_project/screens/sign_up_screen.dart';
 import 'package:teeth_identification_final_year_project/widgets/submit_button.dart';
 import 'package:teeth_identification_final_year_project/widgets/text_widget.dart';
@@ -18,6 +22,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   File? _image;
 
+  bool isLoading = false;
+
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: source);
@@ -29,6 +35,61 @@ class _SignInScreenState extends State<SignInScreen> {
         print('No image selected.');
       }
     });
+  }
+
+  Future<void> _signIn(File image) async {
+    // Replace with your API endpoint
+    String uploadUrl = 'https://33b5-2400-adc7-14a-6200-d9c1-ae3c-7f3-3fc6.ngrok-free.app/signin/';
+
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      // Create a multipart request
+      var request = http.MultipartRequest('POST', Uri.parse(uploadUrl));
+
+      // Add the image file to the request
+      request.files.add(await http.MultipartFile.fromPath('reference_image', image.path));
+
+      // Send the request
+      var response = await request.send();
+
+      final res = await http.Response.fromStream(response);
+
+      // Handle the response
+      if (response.statusCode == 200) {
+
+        final jsonResponse = jsonDecode(res.body);
+        final percentage = jsonResponse['highest_similarity_score'];
+        final name = jsonResponse['name'];
+
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(
+                  name: name,
+                  percentage: percentage
+              ),));
+
+        setState(() {
+          isLoading = false;
+        });
+
+        log('Image uploaded successfully');
+        log('Response: ${res.body}');
+      } else {
+        log('Image upload failed with status: ${response.statusCode}');
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+
+      log('Image upload failed: $e');
+    }
   }
 
   @override
@@ -79,11 +140,13 @@ class _SignInScreenState extends State<SignInScreen> {
                 ],
               ),
               const SizedBox(height: 20,),
+              isLoading ?
+              const CircularProgressIndicator(color: Colors.blue,) :
               SubmitButton(
                   width: 78.w,
                   title: "Sign In",
                   press: (){
-
+                    _signIn(_image!);
                   }
               ),
               const SizedBox(height: 20,),
@@ -99,7 +162,11 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                   InkWell(
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpScreen(),));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpScreen(),
+                          ));
                     },
                     child: TextWidget1(
                         text: "Sign Up",
