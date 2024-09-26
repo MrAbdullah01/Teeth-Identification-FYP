@@ -27,6 +27,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool isLoading = false;
 
+  final formKey = GlobalKey<FormState>();
+
   final String url = "https://33b5-2400-adc7-14a-6200-d9c1-ae3c-7f3-3fc6.ngrok-free.app/signup/";
 
   Future<void> _pickImage(ImageSource source) async {
@@ -127,13 +129,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 20,),
               Center(child: TextWidget1(text: "Sign Up", fontSize: 18.dp, fontWeight: FontWeight.bold, isTextCenter: false, textColor: Colors.black)),
               const SizedBox(height: 50,),
-              TextWidget1(text: "User Name", fontSize: 14.dp,
-                  fontWeight: FontWeight.w500, isTextCenter: false, textColor: Colors.black),
+              Align(
+                alignment: Alignment.topLeft,
+                child: TextWidget1(text: "User Name", fontSize: 14.dp,
+                    fontWeight: FontWeight.w500, isTextCenter: false, textColor: Colors.black),
+              ),
               const SizedBox(height: 10,),
-              InputField(
-                  inputController: userNameC,
-                bdRadius: 10,
-                hintText: "Enter User Name",
+              Form(
+                key: formKey,
+                child: InputField(
+                    inputController: userNameC,
+                  bdRadius: 10,
+                  hintText: "Enter User Name",
+                ),
               ),
               const SizedBox(height: 10,),
               // InputField(inputController: inputController)
@@ -174,7 +182,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     title: "Sign Up",
                     press: (){
                       // uploadUsernameAndFile(userNameC.text.toString(), _image!);
-                      _signUp(context,_image!, userNameC.text.toString());
+                      if(formKey.currentState!.validate()){
+                        if(_image != null){
+                          _signUp(context,_image!, userNameC.text.toString());
+                        }else{
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Image is not Selected!!'),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      }
                       // signIn(name: userNameC.text.toString(), image: _image!);
                     }
                 ),

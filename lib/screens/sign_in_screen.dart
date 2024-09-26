@@ -146,7 +146,16 @@ class _SignInScreenState extends State<SignInScreen> {
                   width: 78.w,
                   title: "Sign In",
                   press: (){
-                    _signIn(_image!);
+                    if(_image != null){
+                      _signIn(_image!);
+                    }else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Image is not Selected!'),
+                          duration: Duration(seconds: 3), // Set the duration for how long the snackbar will be visible
+                        ),
+                      );
+                    }
                   }
               ),
               const SizedBox(height: 20,),

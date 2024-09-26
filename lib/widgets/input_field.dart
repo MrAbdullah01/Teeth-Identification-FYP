@@ -48,6 +48,7 @@ class InputField extends StatelessWidget {
         fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
+
       cursorColor: Colors.black,
       controller: inputController,
       obscureText: obscureText ?? false,
